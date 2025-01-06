@@ -11,7 +11,7 @@ class AuthService {
     }
 
     // Register new user
-    async registerUser({ name, email, password }) {
+    async registerUser({ name, email, password, phone, socialLinks }) {
         // Check if user exists
         const userExists = await User.findOne({ email });
         if (userExists) {
@@ -22,7 +22,9 @@ class AuthService {
         const user = await User.create({
             name,
             email,
-            password
+            password,
+            phone,
+            socialLinks
         });
 
         return {
@@ -31,7 +33,9 @@ class AuthService {
             user: {
                 id: user._id,
                 name: user.name,
-                email: user.email
+                email: user.email,
+                phone: user.phone,
+                socialLinks: user.socialLinks
             }
         };
     }

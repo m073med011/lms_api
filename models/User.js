@@ -18,8 +18,22 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: [true, 'Please add a password'],
-        selected: false,
+        select: false,
         minlength: 6
+    },
+    phone: {
+        type: String,
+        required: [true, 'Please add a phone number'],
+        match: [
+            /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/,
+            'Please add a valid phone number'
+        ]
+    },
+    socialLinks: {
+        facebook: { type: String, default: '' },
+        twitter: { type: String, default: '' },
+        linkedin: { type: String, default: '' },
+        instagram: { type: String, default: '' }
     },
     createdAt: {
         type: Date,
