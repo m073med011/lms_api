@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const errorHandler = require('./middleware/errorHandler');
 
 // Load env vars
 dotenv.config();
@@ -24,6 +25,9 @@ app.use('/api/auth', require('./routes/auth'));
 app.get('/', (req, res) => {
     res.json({ message: 'Welcome to the Auth API' });
 });
+
+// Error Handler (Should be last piece of middleware)
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
