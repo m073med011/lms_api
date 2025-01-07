@@ -29,6 +29,11 @@ const userSchema = new mongoose.Schema({
             'Please add a valid phone number'
         ]
     },
+    role: {
+        type: String,
+        enum: ['student', 'freelancer', 'admin','organizer', 'instructor'],
+        default: 'student'
+    },
     socialLinks: {
         facebook: { type: String, default: '' },
         twitter: { type: String, default: '' },
