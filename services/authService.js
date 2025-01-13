@@ -33,6 +33,7 @@ class AuthService {
             token: this.generateToken(user._id),
             user: {
                 id: user._id,
+                role: user.role,
                 name: user.name,
                 email: user.email,
                 phone: user.phone,
@@ -61,7 +62,9 @@ class AuthService {
             user: {
                 id: user._id,
                 name: user.name,
-                email: user.email
+                email: user.email,
+                phone: user.phone,
+                role: user.role
             }
         };
     }

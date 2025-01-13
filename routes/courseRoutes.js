@@ -1,0 +1,73 @@
+const express = require('express');
+const router = express.Router();
+const { protect } = require('../middleware/auth');
+const courseController = require('../controllers/courseController');
+
+// Public routes
+// @route   GET /api/courses
+// @desc    Get all courses
+// @access  Public
+router.get('/', courseController.listCourses);
+
+// @route   GET /api/courses/:id
+// @desc    Get course by ID
+// @access  Public
+router.get('/:id', courseController.getCourse);
+
+// Protected routes that require authentication
+router.use(protect);
+
+// Student routes
+// @route   GET /api/courses/student/my-courses
+// @desc    Get student's enrolled courses
+// @access  Private (Student)
+router.get('/student/my-courses', courseController.getStudentCourses);
+
+// @route   POST /api/courses/:id/enroll
+// @desc    Enroll in a course
+// @access  Private (Student)
+router.post('/:id/enroll', courseController.enrollStudent);
+
+// @route   DELETE /api/courses/:id/enroll
+// @desc    Unenroll from a course
+// @access  Private (Student)
+router.delete('/:id/enroll', courseController.unenrollStudent);
+
+// @route   POST /api/courses/:id/buy
+// @desc    Buy a course
+// @access  Private (Student)
+router.post('/:id/buy', courseController.buyCourse);
+
+// Instructor routes
+// @route   GET /api/courses/instructor/courses
+// @desc    Get instructor's courses
+// @access  Private (Instructor)
+router.get('/instructor/courses', courseController.getInstructorCourses);
+
+// @route   POST /api/courses
+// @desc    Create a new course
+// @access  Private (Instructor)
+router.post('/', courseController.createCourse);
+
+// @route   PUT /api/courses/:id
+// @desc    Update course
+// @access  Private (Instructor)
+router.put('/:id', courseController.updateCourse);
+
+// @route   DELETE /api/courses/:id
+// @desc    Delete course
+// @access  Private (Instructor)
+router.delete('/:id', courseController.deleteCourse);
+
+// Course materials routes
+// @route   POST /api/courses/:id/materials
+// @desc    Add material to course
+// @access  Private (Instructor)
+router.post('/:id/materials', courseController.addMaterial);
+
+// @route   DELETE /api/courses/:id/materials/:materialId
+// @desc    Delete material from course
+// @access  Private (Instructor)
+router.delete('/:id/materials/:materialId', courseController.deleteMaterial);
+
+module.exports = router;
