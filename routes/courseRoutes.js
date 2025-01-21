@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
 const courseController = require('../controllers/courseController');
+const upload = require('../middleware/upload');
 
 // Public routes
 // @route   GET /api/courses
@@ -23,16 +24,6 @@ router.use(protect);
 // @access  Private (Student)
 router.get('/student/my-courses', courseController.getStudentCourses);
 
-// @route   POST /api/courses/:id/enroll
-// @desc    Enroll in a course
-// @access  Private (Student)
-router.post('/:id/enroll', courseController.enrollStudent);
-
-// @route   DELETE /api/courses/:id/enroll
-// @desc    Unenroll from a course
-// @access  Private (Student)
-router.delete('/:id/enroll', courseController.unenrollStudent);
-
 // @route   POST /api/courses/:id/buy
 // @desc    Buy a course
 // @access  Private (Student)
@@ -44,10 +35,14 @@ router.post('/:id/buy', courseController.buyCourse);
 // @access  Private (Instructor)
 router.get('/instructor/courses', courseController.getInstructorCourses);
 
-// @route   POST /api/courses
-// @desc    Create a new course
+// @route   POST /api/courses/create
+// @desc    Upload a thumbnail and create a course
 // @access  Private (Instructor)
-router.post('/', courseController.createCourse);
+router.post('/create', 
+    protect,
+    upload.single('thumbnail'),
+    courseController.createCourse
+);
 
 // @route   PUT /api/courses/:id
 // @desc    Update course

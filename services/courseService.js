@@ -1,12 +1,88 @@
 const Course = require('../models/Course');
+const cloudinary = require('../config/cloudinary');
+const { Readable } = require('stream');
 
 class CourseService {
-    async createCourse(courseData, instructorId) {
-        const course = new Course({
-            ...courseData,
-            instructor: instructorId
+    uploadThumbnail(file) {
+        return new Promise((resolve, reject) => {
+            console.log('Starting thumbnail upload to Cloudinary...');
+            
+            const stream = cloudinary.uploader.upload_stream(
+                {
+                    folder: 'course-thumbnails',
+                    resource_type: 'auto',
+                    chunk_size: 20000000, // 20MB chunks
+                    timeout: 120000, // 2 minutes timeout
+                    transformation: [
+                        { quality: 'auto:good' }, // Automatic quality optimization
+                        { fetch_format: 'auto' }  // Automatic format selection
+                    ]
+                },
+                (error, result) => {
+                    if (error) {
+                        console.error('Cloudinary upload error:', error);
+                        reject(new Error('Failed to upload thumbnail: ' + error.message));
+                        return;
+                    }
+                    console.log('Thumbnail uploaded successfully:', result.secure_url);
+                    resolve(result.secure_url);
+                }
+            );
+
+            // Handle stream errors
+            stream.on('error', (error) => {
+                console.error('Stream error:', error);
+                reject(new Error('Stream error while uploading thumbnail'));
+            });
+
+            // Handle stream progress
+            let uploadedBytes = 0;
+            stream.on('data', (data) => {
+                uploadedBytes += data.length;
+                console.log(`Upload progress: ${uploadedBytes} bytes uploaded`);
+            });
+
+            const buffer = Readable.from(file.buffer);
+            buffer.pipe(stream);
         });
-        return await course.save();
+    }
+
+    async createCourse(courseData, instructorId, thumbnailFile) {
+        try {
+            let thumbnailUrl;
+            
+            if (thumbnailFile) {
+                console.log('Thumbnail file detected, starting upload process...', {
+                    filename: thumbnailFile.originalname,
+                    size: thumbnailFile.size,
+                    mimetype: thumbnailFile.mimetype
+                });
+                try {
+                    thumbnailUrl = await this.uploadThumbnail(thumbnailFile);
+                    console.log('Thumbnail URL received:', thumbnailUrl);
+                } catch (error) {
+                    console.error('Error uploading thumbnail:', error);
+                    throw new Error('Failed to upload thumbnail: ' + error.message);
+                }
+            }
+
+            console.log('Creating course with data:', { ...courseData, instructor: instructorId });
+            const course = new Course({
+                ...courseData,
+                instructor: instructorId,
+                thumbnail: thumbnailUrl || courseData.thumbnail
+            });
+            
+            const savedCourse = await course.save();
+            console.log('Course created successfully:', savedCourse._id);
+            return savedCourse;
+        } catch (error) {
+            console.error('Error in createCourse:', error);
+            if (error.name === 'ValidationError') {
+                throw new Error('Invalid course data: ' + Object.values(error.errors).map(err => err.message).join(', '));
+            }
+            throw error;
+        }
     }
 
     async getCourse(courseId) {
