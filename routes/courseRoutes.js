@@ -18,6 +18,7 @@ router.get('/:id', courseController.getCourse);
 // Protected routes that require authentication
 router.use(protect);
 
+
 // Student routes
 // @route   GET /api/courses/student/my-courses
 // @desc    Get student's enrolled courses

@@ -11,7 +11,7 @@ class AuthService {
     }
 
     // Register new user
-    async registerUser({ name, email, password, phone,role, socialLinks }) {
+    async registerUser({ name, email, password,role }) {
         // Check if user exists
         const userExists = await User.findOne({ email });
         if (userExists) {
@@ -23,10 +23,8 @@ class AuthService {
             name,
             email,
             password,
-            phone,
-            role,
-            socialLinks
-        });
+            role
+                });
 
         return {
             success: true,
@@ -36,8 +34,6 @@ class AuthService {
                 role: user.role,
                 name: user.name,
                 email: user.email,
-                phone: user.phone,
-                socialLinks: user.socialLinks
             }
         };
     }
@@ -63,7 +59,6 @@ class AuthService {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                phone: user.phone,
                 role: user.role
             }
         };
@@ -82,7 +77,6 @@ class AuthService {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                phone: user.phone,
                 role: user.role,
             }
         };

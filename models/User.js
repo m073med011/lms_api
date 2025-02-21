@@ -21,24 +21,10 @@ const userSchema = new mongoose.Schema({
         select: false,
         minlength: 6
     },
-    phone: {
-        type: String,
-        required: [true, 'Please add a phone number'],
-        match: [
-            /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/,
-            'Please add a valid phone number'
-        ]
-    },
     role: {
         type: String,
         enum: ['student', 'freelancer', 'admin','organizer', 'instructor'],
         default: 'student'
-    },
-    socialLinks: {
-        facebook: { type: String, default: '' },
-        twitter: { type: String, default: '' },
-        linkedin: { type: String, default: '' },
-        instagram: { type: String, default: '' }
     },
     createdAt: {
         type: Date,
