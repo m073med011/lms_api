@@ -13,6 +13,11 @@ const app = express();
 app.use(express.json());
 
 app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5173', // Frontend URL
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/courses', require('./routes/courseRoutes'));

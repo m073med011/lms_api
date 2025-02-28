@@ -120,11 +120,43 @@ class CourseService {
         );
     }
 
-    async listCourses(filters = {}) {
-        return await Course.find(filters)
-            .populate('instructor', 'name email')
-            .sort('-createdAt');
+  // courseService.js
+async listCourses(filters = {}, page = 1, limit = 10) {
+    // Initialize query object
+    const query = {};
+
+    // Apply filters
+    if (filters.category && filters.category !== '') {
+        query.category = filters.category;
     }
+    if (filters.level && filters.level !== '') {
+        query.level = filters.level;
+    }
+
+    // Calculate skip value for pagination
+    const skip = (page - 1) * limit;
+
+    // Get total count of documents matching the query
+    const total = await Course.countDocuments(query);
+
+    // Fetch courses with pagination and filters
+    const courses = await Course.find(query)
+        .populate('instructor', 'name email')
+        .sort('-createdAt')
+        .skip(skip)
+        .limit(limit);
+
+    // Return both courses and total count
+    return {
+        courses,
+        total,
+        page,
+        pages: Math.ceil(total / limit) // Calculate total pages
+    };
+}
+
+
+
 
     async getStudentCourses(studentId) {
         return await Course.find({ enrolledStudents: studentId })

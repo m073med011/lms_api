@@ -182,25 +182,36 @@ class CourseController {
             });
         }
     }
-    async listCourses(req, res) {
-        try {
-            console.log('Listing courses');
-            const courses = await courseService.listCourses(req.query);
-            console.log('Courses listed successfully');
-            res.json({
-                success: true,
-                status: 'success',
-                courses: courses
-            });
-        } catch (error) {
-            console.error('Error in listCourses controller:', error);
-            res.status(400).json({ 
-                success: false,
-                status: 'error',
-                message: error.message || 'Error listing courses'
-            });
-        }
+  // courseController.js
+async listCourses(req, res) {
+    try {
+        console.log('Listing courses with filters and pagination:', req.query);
+
+        // Get page and limit from query parameters
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+
+        // Pass filters, page, and limit to the service method
+        const data = await courseService.listCourses(req.query, page, limit);
+
+        console.log('Courses listed successfully');
+        res.json({
+            success: true,
+            status: 'success',
+            ...data // Spread courses, total, page, and pages
+        });
+    } catch (error) {
+        console.error('Error in listCourses controller:', error);
+        res.status(400).json({ 
+            success: false,
+            status: 'error',
+            message: error.message || 'Error listing courses'
+        });
     }
+}
+
+
+
 
     async getStudentCourses(req, res) {
         try {
