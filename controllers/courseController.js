@@ -185,7 +185,7 @@ class CourseController {
   // courseController.js
 async listCourses(req, res) {
     try {
-        console.log('Listing courses with filters and pagination:', req.query);
+        // console.log('Listing courses with filters and pagination:', req.query);
 
         // Get page and limit from query parameters
         const page = parseInt(req.query.page) || 1;
@@ -194,7 +194,7 @@ async listCourses(req, res) {
         // Pass filters, page, and limit to the service method
         const data = await courseService.listCourses(req.query, page, limit);
 
-        console.log('Courses listed successfully');
+        // console.log('Courses listed successfully');
         res.json({
             success: true,
             status: 'success',
@@ -215,8 +215,7 @@ async listCourses(req, res) {
 
     async getStudentCourses(req, res) {
         try {
-            console.log('Getting courses for student with id:', req.user.id);
-            const courses = await courseService.getStudentCourses(req.user.id);
+            const courses = await courseService.getStudentCourses(req.params.studentid);
             console.log('Courses retrieved successfully');
             res.json({
                 success: true,
@@ -255,8 +254,12 @@ async listCourses(req, res) {
 
     async buyCourse(req, res) {
         try {
-            console.log('Buying course with id:', req.params.id);
-            const course = await courseService.buyCourse(req.params.id, req.user.id);
+            const { courseid, userid } = req.params;
+            console.log('Buying course with id:', courseid);
+            
+            // Assuming courseService.buyCourse expects courseId and userId
+            const course = await courseService.buyCourse(courseid, userid);
+            
             console.log('Course purchased successfully');
             res.json({
                 success: true,

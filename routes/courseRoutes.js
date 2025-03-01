@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
+
 const courseController = require('../controllers/courseController');
 const upload = require('../middleware/upload');
 
@@ -16,19 +17,18 @@ router.get('/', courseController.listCourses);
 router.get('/:id', courseController.getCourse);
 
 // Protected routes that require authentication
-router.use(protect);
 
 
 // Student routes
 // @route   GET /api/courses/student/my-courses
 // @desc    Get student's enrolled courses
 // @access  Private (Student)
-router.get('/student/my-courses', courseController.getStudentCourses);
+router.get('/:studentid/my-courses', courseController.getStudentCourses);
 
 // @route   POST /api/courses/:id/buy
 // @desc    Buy a course
 // @access  Private (Student)
-router.post('/:id/buy', courseController.buyCourse);
+router.post('/:courseid/buy/:userid', courseController.buyCourse);
 
 // Instructor routes
 // @route   GET /api/courses/instructor/courses
