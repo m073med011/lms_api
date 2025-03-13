@@ -1,5 +1,6 @@
 const courseService = require('../services/courseService');
 const Course = require('../models/Course');
+const User = require('../models/User');
 
 class CourseController {
     async createCourse(req, res) {
@@ -255,12 +256,21 @@ async listCourses(req, res) {
     async buyCourse(req, res) {
         try {
             const { courseid, userid } = req.params;
-            console.log('Buying course with id:', courseid);
+    
+            // Check if the course is already purchased
+            const existingPurchase = await courseService.isCoursePurchased(userid, courseid);
             
-            // Assuming courseService.buyCourse expects courseId and userId
+            if (existingPurchase) {
+                return res.status(400).json({
+                    success: false,
+                    status: 'error',
+                    message: 'You have already purchased this course'
+                });
+            }
+    
+            // Proceed with the purchase
             const course = await courseService.buyCourse(courseid, userid);
-            
-            console.log('Course purchased successfully');
+    
             res.json({
                 success: true,
                 status: 'success',
@@ -269,13 +279,14 @@ async listCourses(req, res) {
             });
         } catch (error) {
             console.error('Error in buyCourse controller:', error);
-            res.status(400).json({ 
+            res.status(400).json({
                 success: false,
                 status: 'error',
                 message: error.message || 'Error buying course'
             });
         }
     }
+    
 }
 
 module.exports = new CourseController();

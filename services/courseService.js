@@ -195,6 +195,26 @@ async listCourses(filters = {}, page = 1, limit = 10) {
             .populate('instructor', 'name email')
             .populate('enrolledStudents', 'name email');
     }
+
+    async isCoursePurchased(studentId, courseId) {
+        try {
+            const course = await Course.findById(courseId).select("purchases");
+            
+            if (!course) {
+                throw new Error("Course not found");
+            }
+    
+            // Check if the student has already purchased the course
+            const alreadyPurchased = course.purchases.some(purchase => 
+                purchase.student.toString() === studentId
+            );
+    
+            return alreadyPurchased;
+        } catch (error) {
+            console.error("Error checking course purchase:", error);
+            throw new Error("Failed to check if course is purchased");
+        }
+    }
 }
 
 module.exports = new CourseService();

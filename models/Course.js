@@ -13,6 +13,7 @@ const purchaseSchema = new mongoose.Schema({
     amount: { type: Number, required: true }
 }, { timestamps: true });
 
+
 const courseSchema = new mongoose.Schema({
     title: {
         type: String,
