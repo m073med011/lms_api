@@ -23,13 +23,14 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['student', 'freelancer', 'admin','organizer', 'instructor'],
+        enum: ['student', 'freelancer', 'admin', 'organizer', 'instructor'],
         default: 'student'
     },
     createdAt: {
         type: Date,
         default: Date.now
-    }
+    },
+    purchasedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }] // Optional
 });
 
 // Encrypt password using bcrypt

@@ -255,34 +255,39 @@ async listCourses(req, res) {
 
     async buyCourse(req, res) {
         try {
-            const { courseid, userid } = req.params;
-    
-            // Check if the course is already purchased
-            const existingPurchase = await courseService.isCoursePurchased(userid, courseid);
-            
-            if (existingPurchase) {
-                return res.status(400).json({
-                    success: false,
-                    status: 'error',
-                    message: 'You have already purchased this course'
-                });
-            }
-    
-            // Proceed with the purchase
-            const course = await courseService.buyCourse(courseid, userid);
-    
-            res.json({
-                success: true,
-                status: 'success',
-                message: 'Course purchased successfully',
-                course: course
-            });
+          const { courseid, userid } = req.params;
+          console.log('buyCourse controller called:', { courseid, userid, user: req.user });
+          const { paymentURL, purchaseId } = await courseService.buyCourse(courseid, userid);
+          console.log('buyCourse success:', { paymentURL, purchaseId });
+          res.json({
+            success: true,
+            status: 'success',
+            message: 'Redirect to Paymob for payment',
+            paymentURL,
+            purchaseId, // Include purchaseId in response
+          });
         } catch (error) {
-            console.error('Error in buyCourse controller:', error);
+          console.error('buyCourse controller error:', error.message, error.stack);
+          res.status(400).json({
+            success: false,
+            status: 'error',
+            message: error.message || 'Error buying course',
+          });
+        }
+      }
+
+    async confirmPurchase(req, res) {
+        try {
+            const { order, success, transaction_id } = req.body;
+
+            const result = await courseService.confirmCoursePurchase(order, transaction_id, success);
+
+            res.json({ success: true, message: result.message });
+        } catch (error) {
             res.status(400).json({
                 success: false,
-                status: 'error',
-                message: error.message || 'Error buying course'
+                status: "error",
+                message: error.message || "Error confirming purchase",
             });
         }
     }

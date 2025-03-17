@@ -1,6 +1,10 @@
 const Course = require('../models/Course');
+const User = require('../models/User');
+const Purchase = require('../models/Purchase');
 const cloudinary = require('../config/cloudinary');
 const { Readable } = require('stream');
+const PaymobService = require('./paymobService');
+
 
 class CourseService {
     uploadThumbnail(file) {
@@ -169,52 +173,104 @@ async listCourses(filters = {}, page = 1, limit = 10) {
     }
 
     async buyCourse(courseId, studentId) {
+        console.log('buyCourse service called:', { courseId, studentId });
+      
+        // Check course
         const course = await Course.findById(courseId);
-        if (!course) throw new Error('Course not found');
-        
-        if (course.enrolledStudents.includes(studentId)) {
-            throw new Error('Student already enrolled in this course');
+        if (!course) {
+          console.log('Course not found:', courseId);
+          throw new Error('Course not found');
         }
-
-        // Initialize arrays if they don't exist
-        if (!course.enrolledStudents) course.enrolledStudents = [];
-        if (!course.purchases) course.purchases = [];
-
-        // Add student to enrolled students
-        course.enrolledStudents.push(studentId);
-        
-        // Add purchase record
-        course.purchases.push({
-            student: studentId,
-            purchaseDate: new Date(),
-            amount: course.price
-        });
-
-        const updatedCourse = await course.save();
-        return await Course.findById(updatedCourse._id)
-            .populate('instructor', 'name email')
-            .populate('enrolledStudents', 'name email');
-    }
-
-    async isCoursePurchased(studentId, courseId) {
+        console.log('Course found:', course.title);
+      
+        // Check user
+        const user = await User.findById(studentId);
+        if (!user) {
+          console.log('User not found:', studentId);
+          throw new Error('User not found');
+        }
+        console.log('User found:', user.email);
+      
+        // Check if already purchased
+        const alreadyPurchased = await this.isCoursePurchased(studentId, courseId);
+        if (alreadyPurchased) {
+          console.log('Course already purchased:', { courseId, studentId });
+          throw new Error('You have already purchased this course');
+        }
+      
+        // Paymob integration
+        let authToken, orderId, paymentToken, paymentURL, purchase;
         try {
-            const course = await Course.findById(courseId).select("purchases");
-            
-            if (!course) {
-                throw new Error("Course not found");
-            }
-    
-            // Check if the student has already purchased the course
-            const alreadyPurchased = course.purchases.some(purchase => 
-                purchase.student.toString() === studentId
-            );
-    
-            return alreadyPurchased;
+          console.log('Authenticating with Paymob...');
+          authToken = await PaymobService.getAuthToken();
+          console.log('Paymob auth token:', authToken);
+      
+          console.log('Creating Paymob order...');
+          orderId = await PaymobService.createOrder(course.price, authToken);
+          console.log('Paymob order ID:', orderId);
+      
+          purchase = await Purchase.create({
+            user: studentId,
+            course: courseId,
+            transactionId: orderId,
+            amount: course.price,
+            status: 'Pending',
+          });
+          console.log('Purchase created:', purchase._id);
+      
+          // Define userData for Paymob billing
+          const userData = {
+            email: user.email || 'test@example.com',
+            firstName: user.name ? user.name.split(' ')[0] : 'N/A',
+            lastName: user.name ? user.name.split(' ')[1] || 'N/A' : 'N/A',
+            phone: user.phone || '+201234567890', // Add a phone field to your User model if needed
+            amount: course.price,
+          };
+          console.log('User data for Paymob:', userData);
+      
+          console.log('Getting Paymob payment token...');
+          paymentToken = await PaymobService.getPaymentToken(orderId, authToken, userData);
+          console.log('Paymob payment token:', paymentToken);
+      
+          paymentURL = `https://accept.paymob.com/api/acceptance/iframes/${process.env.PAYMOB_IFRAME_ID}?payment_token=${paymentToken}`;
+          console.log('Payment URL generated:', paymentURL);
+      
+          return { paymentURL, purchaseId: purchase._id };
         } catch (error) {
-            console.error("Error checking course purchase:", error);
-            throw new Error("Failed to check if course is purchased");
+          console.error('Paymob integration error:', error.message, error.response?.data);
+          throw new Error(`Paymob integration failed: ${error.message}`);
         }
-    }
+      }
+    
+      async confirmCoursePurchase(orderId, transactionId, success) {
+        const purchase = await Purchase.findOne({ transactionId: orderId });
+        if (!purchase) throw new Error('Purchase record not found');
+    
+        purchase.status = success ? 'Paid' : 'Failed';
+        await purchase.save();
+    
+        if (success) {
+          // Update User and Course
+          await User.findByIdAndUpdate(purchase.user, {
+            $addToSet: { purchasedCourses: purchase.course },
+          });
+          await Course.findByIdAndUpdate(purchase.course, {
+            $addToSet: { enrolledStudents: purchase.user },
+            $push: { purchases: { student: purchase.user, amount: purchase.amount } },
+          });
+        }
+    
+        return { message: 'Purchase confirmed successfully' };
+      }
+    
+      async isCoursePurchased(studentId, courseId) {
+        const purchase = await Purchase.findOne({
+          user: studentId,
+          course: courseId,
+          status: 'Paid',
+        });
+        return !!purchase;
+      }
 }
 
 module.exports = new CourseService();

@@ -4,7 +4,9 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
+
 dotenv.config();
+require('dotenv').config();
 
 connectDB();
 
@@ -21,6 +23,7 @@ app.use(cors({
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/courses', require('./routes/courseRoutes'));
+app.use('/api/payment', require('./routes/payment'));
 
 app.get('/', (req, res) => {
     res.json({ message: 'Welcome to the Auth API' });
