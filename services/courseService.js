@@ -159,13 +159,26 @@ async listCourses(filters = {}, page = 1, limit = 10) {
     };
 }
 
-
-
-
-    async getStudentCourses(studentId) {
-        return await Course.find({ enrolledStudents: studentId })
-            .populate('instructor', 'name email');
+async  getStudentCourses(studentId) {
+  const purchases = await Purchase.find({
+    user: studentId,
+    status: { $in: ["Paid", "Pending"] } // include both statuses
+  }).populate({
+    path: "course",
+    populate: {
+      path: "instructor",
+      select: "name email"
     }
+  });
+
+  // Extract only valid course documents
+  const courses = purchases
+    .map(p => p.course)
+    .filter(course => course !== null); // filter out deleted courses
+
+  return courses;
+}
+
 
     async getInstructorCourses(instructorId) {
         return await Course.find({ instructor: instructorId })
