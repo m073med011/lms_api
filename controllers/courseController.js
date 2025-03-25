@@ -4,23 +4,21 @@ const User = require('../models/User');
 
 class CourseController {
     async createCourse(req, res) {
+        console.log('Creating course with data:', req.body);
         try {
+            let thumbnailUrl = '';
+    
             const thumbnailFile = req.file;
-            if (!thumbnailFile) {
-                return res.status(400).json({ 
-                    success: false,
-                    status: 'error',
-                    message: 'No file uploaded' 
-                });
+            if (thumbnailFile) {
+                console.log('Thumbnail file received:', thumbnailFile.originalname);
+                // Upload file to Cloudinary
+                thumbnailUrl = await courseService.uploadThumbnail(thumbnailFile);
+                console.log('Thumbnail URL received:', thumbnailUrl);
+            } else {
+                console.log('No thumbnail uploaded. Proceeding without it.');
             }
-
-            console.log('Thumbnail file received:', thumbnailFile.originalname);
-
-            // Upload file to Cloudinary
-            const thumbnailUrl = await courseService.uploadThumbnail(thumbnailFile);
-            console.log('Thumbnail URL received:', thumbnailUrl);
-
-            // Create new course with the Cloudinary URL
+    
+            // Create new course with or without thumbnail
             const courseData = {
                 title: req.body.title,
                 description: req.body.description,
@@ -29,13 +27,13 @@ class CourseController {
                 duration: req.body.duration,
                 level: req.body.level,
                 isPublished: req.body.isPublished,
-                thumbnail: thumbnailUrl,
-                instructor: req.user.id
+                thumbnail: thumbnailUrl || null, // optional
+                instructor: req.body.id
             };
-
+    
             const course = new Course(courseData);
             const savedCourse = await course.save();
-
+    
             res.status(201).json({
                 success: true,
                 status: 'success',
@@ -51,6 +49,7 @@ class CourseController {
             });
         }
     }
+    
 
     async getCourse(req, res) {
         try {

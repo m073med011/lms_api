@@ -14,7 +14,7 @@ router.post('/:courseid/buy/:userid', protect, restrictTo('student'), courseCont
 
 // Instructor routes
 router.get('/instructor/courses', protect, restrictTo('instructor'), courseController.getInstructorCourses);
-router.post('/create', protect, restrictTo('instructor'), upload.single('thumbnail'), courseController.createCourse);
+router.post('/create', upload.single('thumbnail'), courseController.createCourse);
 router.put('/:id', protect, restrictTo('instructor'), courseController.updateCourse);
 router.delete('/:id', protect, restrictTo('instructor'), courseController.deleteCourse);
 router.post('/:id/materials', protect, restrictTo('instructor'), courseController.addMaterial);
