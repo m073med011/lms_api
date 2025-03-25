@@ -10,7 +10,7 @@ router.get('/:id', courseController.getCourse);
 
 // Student routes
 router.get('/:studentid/my-courses', courseController.getStudentCourses);
-router.post('/:courseid/buy/:userid', protect, restrictTo('student'), courseController.buyCourse);
+router.post('/:courseid/buy/:userid', courseController.buyCourse);
 
 // Instructor routes
 router.get('/instructor/courses', protect, restrictTo('instructor'), courseController.getInstructorCourses);
