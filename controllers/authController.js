@@ -51,3 +51,45 @@ exports.getMe = async (req, res) => {
         });
     }
 };
+exports.updateMe = async (req, res) => {
+  try {
+    const result = await authService.updateUser(req.params.userId, req.body);
+    res.json(result);
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message || 'Server error' });
+  }
+};
+exports.deleteMe = async (req, res) => {
+  try {
+    const result = await authService.deleteUser(req.params.userId);
+    res.json(result);
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message || 'Server error' });
+  }
+};
+exports.GetAllUsers = async (req, res) => {
+  try {
+    // Call the authService.getAllUsers method to fetch all users
+    const result = await authService.getAllUsers();  // Notice the parentheses to call the method
+
+    // Check if the result is successful
+    if (result.success) {
+      return res.status(200).json({
+        success: true,
+        users: result.users,  // Send the users in the response
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Could not retrieve users",
+      });
+    }
+  } catch (error) {
+    // Handle any errors that might occur
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",  // Generic server error message
+    });
+  }
+};

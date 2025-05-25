@@ -1,6 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const AppError = require('../utils/appError');
+// const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
+
 
 class AuthService {
     // Generate JWT Token
@@ -11,7 +14,7 @@ class AuthService {
     }
 
     // Register new user
-    async registerUser({ name, email, password,role }) {
+    async registerUser({ name, email, password, role }) {
         // Check if user exists
         const userExists = await User.findOne({ email });
         if (userExists) {
@@ -24,7 +27,7 @@ class AuthService {
             email,
             password,
             role
-                });
+        });
 
         return {
             success: true,
@@ -81,6 +84,56 @@ class AuthService {
             }
         };
     }
+    // Update user with encrypted password
+    async updateUser(userId, updateData) {
+        // Check if password is provided and hash it
+        if (updateData.password) {
+            const saltRounds = 10; // You can adjust the number of salt rounds
+            updateData.password = await bcrypt.hash(updateData.password, saltRounds);
+        }
+
+        const user = await User.findByIdAndUpdate(userId, updateData, { new: true });
+        if (!user) {
+            throw new AppError('User not found', 404);
+        }
+        return {
+            success: true,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+            }
+        };
+    }
+    // Delete user
+    async deleteUser(userId) {
+        const user = await User.findByIdAndDelete(userId);
+        if (!user) {
+            throw new AppError('User not found', 404);
+        }
+        return {
+            success: true,
+            message: 'User deleted successfully',
+        };
+    }
+
+    // Get All users for Admin Only
+    async getAllUsers() {
+        try {
+            const users = await User.find();
+            return {
+                success: true,
+                users,
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message,
+            };
+        }
+    }
+
 }
 
 module.exports = new AuthService();
