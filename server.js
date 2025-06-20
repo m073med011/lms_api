@@ -8,7 +8,7 @@ const app = express();
 
 // Enhanced CORS configuration
 const corsOptions = {
-  origin: [
+  origin: ['*',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     process.env.FRONTEND_URL || 'http://localhost:3000'
