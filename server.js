@@ -99,6 +99,16 @@ app.use((err, req, res, next) => {
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 });
+// Root route
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Welcome to the API!',
+    documentation: '/api-docs', // optional if you plan to add Swagger or similar
+    timestamp: new Date().toISOString()
+  });
+});
+
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
