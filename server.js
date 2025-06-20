@@ -100,12 +100,10 @@ app.use((err, req, res, next) => {
   });
 });
 // Root route
-app.get('/', (req, res) => {
+app.get('/a', (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Welcome to the API!',
-    documentation: '/api-docs', // optional if you plan to add Swagger or similar
-    timestamp: new Date().toISOString()
   });
 });
 
