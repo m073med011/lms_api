@@ -7,31 +7,40 @@ const bcrypt = require('bcryptjs');
 
 class AuthService {
     // Generate JWT Token
-    generateToken(id) {
-        return jwt.sign({ id }, process.env.JWT_SECRET, {
+    generateToken(user) {
+        return jwt.sign({ id:user._id, name:user.name, email:user.email, role:user.role }, process.env.JWT_SECRET, {
             expiresIn: '30d'
         });
     }
 
     // Register new user
-    async registerUser({ name, email, password, role }) {
+    async registerUser({ name, email, password, role, isOAuthUser = false, provider = 'credentials' }) {
         // Check if user exists
         const userExists = await User.findOne({ email });
         if (userExists) {
             throw new AppError('User already exists', 400);
         }
 
-        // Create user
-        const user = await User.create({
+        // Create user data object
+        const userData = {
             name,
             email,
-            password,
-            role
-        });
+            role,
+            isOAuthUser,
+            provider
+        };
+
+        // Only add password if it's not an OAuth user
+        if (!isOAuthUser && password) {
+            userData.password = password;
+        }
+
+        // Create user
+        const user = await User.create(userData);
 
         return {
             success: true,
-            token: this.generateToken(user._id),
+            token: this.generateToken(user),
             user: {
                 id: user._id,
                 role: user.role,
@@ -57,13 +66,34 @@ class AuthService {
 
         return {
             success: true,
-            token: this.generateToken(user._id),
+            token: this.generateToken(user),
             user: {
                 id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role
             }
+        };
+    }
+
+    async getUserByEmail(email) {
+        const user = await User.findOne({ email }).select('-password');
+        
+        if (!user) {
+            throw new AppError('User not found', 404);
+        }
+        
+        return {
+            success: true,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                isOAuthUser: user.isOAuthUser,
+                provider: user.provider
+            },
+            token: this.generateToken(user)
         };
     }
 

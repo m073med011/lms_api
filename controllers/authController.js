@@ -4,21 +4,23 @@ const authService = require('../services/authService');
 // @route   POST /api/auth/register
 // @access  Public
 exports.register = async (req, res) => {
-    try {
-        const { name, email, password,role} = req.body;
-        const result = await authService.registerUser({ 
-            name, 
-            email, 
-            password, 
-            role,
-        });
-        res.status(201).json(result);
-    } catch (error) {
-        res.status(error.statusCode || 500).json({ 
-            success: false, 
-            message: error.message || 'Server error' 
-        });
-    }
+  try {
+      const { name, email, password, role, isOAuthUser, provider } = req.body;
+      const result = await authService.registerUser({
+          name,
+          email,
+          password,
+          role,
+          isOAuthUser,
+          provider
+      });
+      res.status(201).json(result);
+  } catch (error) {
+      res.status(error.statusCode || 500).json({
+          success: false,
+          message: error.message || 'Server error'
+      });
+  }
 };
 
 // @desc    Login user
@@ -37,12 +39,25 @@ exports.login = async (req, res) => {
     }
 };
 
+exports.getUserByEmail = async (req, res) => {
+    try {
+        const { email } = req.params;
+        const result = await authService.getUserByEmail(email);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.message || 'Server error'
+        });
+    }
+};
+
 // @desc    Get current logged in user
 // @route   GET /api/auth/me
 // @access  Private
 exports.getMe = async (req, res) => {
     try {
-        const result = await authService.getCurrentUser(req.user.id);
+        const result = await authService.getCurrentUser(req.params.userId);
         res.json(result);
     } catch (error) {
         res.status(error.statusCode || 500).json({ 
