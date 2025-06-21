@@ -8,11 +8,7 @@ const app = express();
 
 // Enhanced CORS configuration
 const corsOptions = {
-  origin: ['*',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    process.env.FRONTEND_URL || 'http://localhost:3000'
-  ],
+  origin: '*', // Allow public access from any origin
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
@@ -99,14 +95,6 @@ app.use((err, req, res, next) => {
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 });
-// Root route
-app.get('/a', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'Welcome to the API!',
-  });
-});
-
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
