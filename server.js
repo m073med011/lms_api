@@ -65,6 +65,10 @@ app.get('/health', (req, res) => {
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
+// Root route
+app.get('/', (req, res) => {
+  res.status(200).send('Hello World');
+});
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -106,6 +110,7 @@ process.on('uncaughtException', (err) => {
   console.error('❌ Uncaught Exception:', err);
   process.exit(1);
 });
+
 
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
