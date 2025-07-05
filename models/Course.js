@@ -7,11 +7,11 @@ const materialSchema = new mongoose.Schema({
     order: { type: Number, required: true }
 }, { timestamps: true });
 
-const purchaseSchema = new mongoose.Schema({
-    student: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    purchaseDate: { type: Date, default: Date.now },
-    amount: { type: Number, required: true }
-}, { timestamps: true });
+// const purchaseSchema = new mongoose.Schema({
+//     student: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+//     purchaseDate: { type: Date, default: Date.now },
+//     amount: { type: Number, required: true }
+// }, { timestamps: true });
 
 
 const courseSchema = new mongoose.Schema({
@@ -26,7 +26,7 @@ const courseSchema = new mongoose.Schema({
         unique: true,
         lowercase: true
     },
-    thumbnail: { type: String, default: 'https://placehold.co/600x400' },
+    thumbnail: { type: String, default: 'https://firebasestorage.googleapis.com/v0/b/projectname-9e412.appspot.com/o/Gemini_Generated_Image_a3pup0a3pup0a3pu.png?alt=media&token=7a1b417a-6f7a-4cdd-a373-3251c8af6fcf' },
     description: {
         type: String,
         required: [true, 'A course must have a description'],
@@ -34,8 +34,8 @@ const courseSchema = new mongoose.Schema({
     },
     instructor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     materials: [materialSchema],
-    enrolledStudents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    purchases: [purchaseSchema],
+    // enrolledStudents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    // purchases: [purchaseSchema],
     category: {
         type: String,
         required: [true, 'A course must have a category']

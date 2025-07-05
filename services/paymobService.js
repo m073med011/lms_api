@@ -1,66 +1,64 @@
+// services/paymobService.js
 const axios = require('axios');
 
+const PAYMOB_API_KEY = process.env.PAYMOB_API_KEY;
+const INTEGRATION_ID = process.env.PAYMOB_INTEGRATION_ID;
+const IFRAME_ID = process.env.PAYMOB_IFRAME_ID;
+
 class PaymobService {
-  static paymobBaseUrl = 'https://accept.paymobsolutions.com/api';
-
-  static async getAuthToken() {
-    try {
-      const response = await axios.post(`${this.paymobBaseUrl}/auth/tokens`, {
-        api_key: process.env.PAYMOB_API_KEY,
-      });
-      return response.data.token;
-    } catch (error) {
-      throw new Error(`Paymob getAuthToken failed: ${error.response?.data?.error || error.message}`);
-    }
+  async authenticate() {
+    const response = await axios.post('https://accept.paymob.com/api/auth/tokens', {
+      api_key: PAYMOB_API_KEY,
+    });
+    return response.data.token;
   }
 
-  static async createOrder(amount, authToken) {
-    try {
-      const response = await axios.post(`${this.paymobBaseUrl}/ecommerce/orders`, {
-        auth_token: authToken,
-        delivery_needed: false,
-        amount_cents: amount * 100, // Convert to cents
-        currency: 'EGP',
-        merchant_order_id: `${Date.now()}`,
-      });
-      return response.data.id;
-    } catch (error) {
-      throw new Error(`Paymob createOrder failed: ${error.response?.data?.error || error.message}`);
-    }
+  async createOrder(token, course, userId) {
+    const response = await axios.post('https://accept.paymob.com/api/ecommerce/orders', {
+      auth_token: token,
+      delivery_needed: false,
+      amount_cents: course.price * 100,
+      currency: "EGP",
+      items: [{
+        name: course.title,
+        amount_cents: course.price * 100,
+        quantity: 1,
+      }]
+    });
+
+    return response.data;
   }
 
-  static async getPaymentToken(orderId, authToken, user) {
-    try {
-      const payload = {
-        auth_token: authToken,
-        amount_cents: user.amount * 100,
-        currency: 'EGP',
-        order_id: orderId,
-        billing_data: {
-          email: user.email || 'test@example.com',
-          first_name: user.firstName || user.name.split(' ')[0] || 'N/A',
-          last_name: user.lastName || (user.name.split(' ')[1] || 'N/A'),
-          phone_number: user.phone || '+20123456789000',
-          street: 'N/A',
-          city: 'N/A',
-          country: 'EG',
-          state: 'N/A',
-          postal_code: 'N/A',
-          building: 'N/A',
-          floor: 'N/A',
-          apartment: 'N/A',
-        },
-        integration_id: process.env.PAYMOB_MERCHANT_ID,
-      };
-      console.log('Paymob payment token request payload:', payload);
-      const response = await axios.post(`${this.paymobBaseUrl}/acceptance/payment_keys`, payload);
-      console.log('Paymob payment token response:', response.data);
-      return response.data.token;
-    } catch (error) {
-      console.error('Paymob getPaymentToken error:', error.message, error.response?.data);
-      throw new Error(`Paymob getPaymentToken failed: ${error.message}${error.response?.data ? ' ' + JSON.stringify(error.response.data) : ''}`);
-    }
+  async generatePaymentKey(token, orderId, course, user) {
+    const response = await axios.post('https://accept.paymob.com/api/acceptance/payment_keys', {
+      auth_token: token,
+      amount_cents: course.price * 100,
+      expiration: 3600,
+      order_id: orderId,
+      currency: "EGP",
+      integration_id: INTEGRATION_ID,
+    redirect_url: `http://localhost:3000/en/payment/callback`, 
+      billing_data: {
+        email: user.email,
+        first_name: user.name.split(" ")[0] || user.name,
+        last_name: user.name.split(" ")[1] || user.name,
+        phone_number: "01000000000",
+        apartment: "NA",
+        floor: "NA",
+        street: "NA",
+        building: "NA",
+        city: "Cairo",
+        country: "EG",
+        state: "NA"
+      }
+    });
+
+    return response.data.token;
+  }
+
+  generateIframe(paymentToken) {
+    return `https://accept.paymob.com/api/acceptance/iframes/${IFRAME_ID}?payment_token=${paymentToken}`;
   }
 }
 
-module.exports = PaymobService;
+module.exports = new PaymobService();

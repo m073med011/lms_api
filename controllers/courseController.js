@@ -4,21 +4,9 @@ const User = require('../models/User');
 
 class CourseController {
     async createCourse(req, res) {
-        console.log('Creating course with data:', req.body);
+        console.log('Creating course with data:', req.headers.authorization);
+    const instructorId = req.user.id; // from decoded token
         try {
-            let thumbnailUrl = '';
-    
-            const thumbnailFile = req.file;
-            if (thumbnailFile) {
-                console.log('Thumbnail file received:', thumbnailFile.originalname);
-                // Upload file to Cloudinary
-                thumbnailUrl = await courseService.uploadThumbnail(thumbnailFile);
-                console.log('Thumbnail URL received:', thumbnailUrl);
-            } else {
-                console.log('No thumbnail uploaded. Proceeding without it.');
-            }
-    
-            // Create new course with or without thumbnail
             const courseData = {
                 title: req.body.title,
                 description: req.body.description,
@@ -27,8 +15,8 @@ class CourseController {
                 duration: req.body.duration,
                 level: req.body.level,
                 isPublished: req.body.isPublished,
-                thumbnail: thumbnailUrl || null, // optional
-                instructor: req.body.id
+                thumbnail: req.body.thumbnail || "", // optional
+                instructor: instructorId
             };
     
             const course = new Course(courseData);
@@ -252,44 +240,6 @@ async listCourses(req, res) {
         }
     }
 
-    async buyCourse(req, res) {
-        try {
-          const { courseid, userid } = req.params;
-          console.log('buyCourse controller called:', { courseid, userid, user: req.user });
-          const { paymentURL, purchaseId } = await courseService.buyCourse(courseid, userid);
-          console.log('buyCourse success:', { paymentURL, purchaseId });
-          res.json({
-            success: true,
-            status: 'success',
-            message: 'Redirect to Paymob for payment',
-            paymentURL,
-            purchaseId, // Include purchaseId in response
-          });
-        } catch (error) {
-          console.error('buyCourse controller error:', error.message, error.stack);
-          res.status(400).json({
-            success: false,
-            status: 'error',
-            message: error.message || 'Error buying course',
-          });
-        }
-      }
-
-    async confirmPurchase(req, res) {
-        try {
-            const { order, success, transaction_id } = req.body;
-
-            const result = await courseService.confirmCoursePurchase(order, transaction_id, success);
-
-            res.json({ success: true, message: result.message });
-        } catch (error) {
-            res.status(400).json({
-                success: false,
-                status: "error",
-                message: error.message || "Error confirming purchase",
-            });
-        }
-    }
     
 }
 

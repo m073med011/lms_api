@@ -3,18 +3,22 @@ const router = express.Router();
 const { protect, restrictTo } = require('../middleware/auth');
 const courseController = require('../controllers/courseController');
 const upload = require('../middleware/upload');
+// import { authenticate } from '../middleware/authenticate';
+const authenticate = require('../middleware/authenticate');
+
 
 // Public routes
+// get All Courses
 router.get('/', courseController.listCourses);
+// get Single Course
 router.get('/:id', courseController.getCourse);
 
 // Student routes
 router.get('/:studentid/my-courses', courseController.getStudentCourses);
-router.post('/:courseid/buy/:userid', courseController.buyCourse);
 
 // Instructor routes
 router.get('/instructor/courses', protect, restrictTo('instructor'), courseController.getInstructorCourses);
-router.post('/create', upload.single('thumbnail'), courseController.createCourse);
+router.post('/create',authenticate, courseController.createCourse);
 router.put('/:id', protect, restrictTo('instructor'), courseController.updateCourse);
 router.delete('/:id', protect, restrictTo('instructor'), courseController.deleteCourse);
 router.post('/:id/materials', protect, restrictTo('instructor'), courseController.addMaterial);

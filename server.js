@@ -65,6 +65,12 @@ app.get('/health', (req, res) => {
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/courses', require('./routes/courseRoutes'));
+app.use('/api/payment', require('./routes/payment'));
+app.use('/api/payment', require('./routes/paymentWebhook'));
+app.use('/api/payment', require('./routes/paymentVerify'));
+ // webhook under same prefix
+
 // Root route
 app.get('/', (req, res) => {
   res.status(200).send('Hello World');
@@ -115,7 +121,10 @@ process.on('uncaughtException', (err) => {
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  const environmentName = process.env.NODE_ENV === 'production' ? 'production' : 'local';
+
+  console.log(`🌍 Environment: ${environmentName}`);
+  
 });
 
 // Handle server shutdown gracefully
