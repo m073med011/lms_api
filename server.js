@@ -121,9 +121,9 @@ process.on('uncaughtException', (err) => {
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  const environmentName = process.env.NODE_ENV === 'production' ? 'production' : 'local';
+  // const environmentName = process.env.NODE_ENV === 'production' ? 'production' : 'local';
 
-  console.log(`🌍 Environment: ${environmentName}`);
+  // console.log(`🌍 Environment: ${environmentName}`);
   
 });
 
