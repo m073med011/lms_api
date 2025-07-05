@@ -99,10 +99,10 @@ app.use((err, req, res, next) => {
   
   res.status(statusCode).json({
     success: false,
-    message: process.env.NODE_ENV === 'production' 
+    message: process.env === 'production' 
       ? (statusCode === 500 ? 'Internal Server Error' : message)
       : message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    ...(process.env === 'development' && { stack: err.stack })
   });
 });
 
@@ -121,7 +121,7 @@ process.on('uncaughtException', (err) => {
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  // const environmentName = process.env.NODE_ENV === 'production' ? 'production' : 'local';
+  // const environmentName = process.env === 'production' ? 'production' : 'local';
 
   // console.log(`🌍 Environment: ${environmentName}`);
   
