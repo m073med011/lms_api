@@ -38,7 +38,7 @@ class PaymobService {
       order_id: orderId,
       currency: "EGP",
       integration_id: INTEGRATION_ID,
-    redirect_url: `${FRONTEND_URL}/payment/callback`, 
+    redirect_url: `${FRONTEND_URL}/en/payment/callback`, 
       billing_data: {
         email: user.email,
         first_name: user.name.split(" ")[0] || user.name,
