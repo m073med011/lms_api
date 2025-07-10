@@ -202,9 +202,10 @@ async listCourses(req, res) {
 
 
     async getStudentCourses(req, res) {
+        
         try {
-            const courses = await courseService.getStudentCourses(req.params.studentid);
-            console.log('Courses retrieved successfully');
+            console.log(req.user.id);
+            const courses = await courseService.getStudentCourses(req.user.id);
             res.json({
                 success: true,
                 status: 'success',

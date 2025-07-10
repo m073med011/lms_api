@@ -126,39 +126,46 @@ class CourseService {
 
   // courseService.js
 async listCourses(filters = {}, page = 1, limit = 10) {
-    // Initialize query object
     const query = {};
 
-    // Apply filters
+    // 🔎 Text Search (title, maybe description)
+    if (filters.search && filters.search.trim() !== '') {
+        const regex = new RegExp(filters.search.trim(), 'i'); // case-insensitive
+        query.$or = [
+            { title: regex },
+            { level: regex } // optional
+        ];
+    }
+
+    // ✅ Filter by category
     if (filters.category && filters.category !== '') {
         query.category = filters.category;
     }
+
+    // ✅ Filter by level
     if (filters.level && filters.level !== '') {
         query.level = filters.level;
     }
 
-    // Calculate skip value for pagination
+    // 📄 Pagination
     const skip = (page - 1) * limit;
-
-    // Get total count of documents matching the query
     const total = await Course.countDocuments(query);
 
-    // Fetch courses with pagination and filters
     const courses = await Course.find(query)
         .populate('instructor', 'name email')
-        .select('-materials -description')
+        .select('-materials -description') // remove if needed
         .sort('-createdAt')
         .skip(skip)
         .limit(limit);
 
-    // Return both courses and total count
     return {
         courses,
         total,
         page,
-        pages: Math.ceil(total / limit) // Calculate total pages
+        pages: Math.ceil(total / limit)
     };
 }
+
 
 async  getStudentCourses(studentId) {
   const purchases = await Purchase.find({
@@ -166,6 +173,7 @@ async  getStudentCourses(studentId) {
     status: { $in: ["Paid", "Pending"] } // include both statuses
   }).populate({
     path: "course",
+            select: "-materials -description -price -isPublished -slug",
     populate: {
       path: "instructor",
       select: "name email"

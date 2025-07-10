@@ -11,10 +11,10 @@ const authenticate = require('../middleware/authenticate');
 // get All Courses
 router.get('/', courseController.listCourses);
 // get Single Course
-router.get('/:id', courseController.getCourse);
 
 // Student routes
-router.get('/:studentid/my-courses', courseController.getStudentCourses);
+router.get('/mycourses',authenticate, courseController.getStudentCourses);
+router.get('/:id', courseController.getCourse);
 
 // Instructor routes
 router.get('/instructor/courses', protect, restrictTo('instructor'), courseController.getInstructorCourses);
