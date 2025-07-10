@@ -4,6 +4,7 @@ const axios = require('axios');
 const PAYMOB_API_KEY = process.env.PAYMOB_API_KEY;
 const INTEGRATION_ID = process.env.PAYMOB_INTEGRATION_ID;
 const IFRAME_ID = process.env.PAYMOB_IFRAME_ID;
+const FRONTEND_URL=process.env.FRONTEND_URL
 
 class PaymobService {
   async authenticate() {
@@ -37,7 +38,7 @@ class PaymobService {
       order_id: orderId,
       currency: "EGP",
       integration_id: INTEGRATION_ID,
-    redirect_url: `http://localhost:3000/en/payment/callback`, 
+    redirect_url: `${FRONTEND_URL}/payment/callback`, 
       billing_data: {
         email: user.email,
         first_name: user.name.split(" ")[0] || user.name,
