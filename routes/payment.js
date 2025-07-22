@@ -41,5 +41,65 @@ router.post('/checkout/:courseId', authenticate, async (req, res) => {
     res.status(500).json({ success: false, message: 'Checkout failed', error: error.message });
   }
 });
+router.post('/verify', async (req, res) => {
+  const { transactionId, status } = req.body;
+
+  console.log('=== Verifying Payment ===');
+  console.log("Body:", req.body);
+
+  try {
+    const purchase = await Purchase.findOne({ transactionId });
+
+    if (!purchase) {
+      return res.status(404).json({ success: false, message: 'Purchase not found' });
+    }
+
+    if (status === 'true') {
+      if (purchase.status !== 'Paid') {
+        purchase.status = 'Paid';
+        await purchase.save();
+      }
+    } else {
+      purchase.status = 'Failed';
+      await purchase.save();
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Verification error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
+router.post('/webhook', async (req, res) => {
+  try {
+    const data = req.body;
+
+    const isSuccess = data.type === 'TRANSACTION' && data.obj.success === true;
+    const isFailure = data.type === 'TRANSACTION' && data.obj.success === false;
+
+    const transactionId = data.obj.order.id.toString();
+
+    if (isSuccess) {
+      await Purchase.findOneAndUpdate(
+        { transactionId },
+        { status: 'Paid' },
+        { new: true }
+      );
+      console.log('✅ Payment succeeded');
+    } else if (isFailure) {
+      await Purchase.findOneAndUpdate(
+        { transactionId },
+        { status: 'Failed' },
+        { new: true }
+      );
+      console.log('❌ Payment failed');
+    }
+
+    res.sendStatus(200);
+  } catch (error) {
+    console.error('Webhook processing error:', error);
+    res.status(500).send('Internal error');
+  }
+});
 
 module.exports = router;

@@ -45,8 +45,8 @@ app.use((req, res, next) => {
 
 // Connect to MongoDB with better error handling
 mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+  // useNewUrlParser: true,
+  // useUnifiedTopology: true,
 })
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => {
@@ -67,8 +67,6 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/courses', require('./routes/courseRoutes'));
 app.use('/api/payment', require('./routes/payment'));
-app.use('/api/payment', require('./routes/paymentWebhook'));
-app.use('/api/payment', require('./routes/paymentVerify'));
  // webhook under same prefix
 
 // Root route
@@ -119,12 +117,14 @@ process.on('uncaughtException', (err) => {
 
 
 const PORT = process.env.PORT || 5000;
+
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  // const environmentName = process.env === 'production' ? 'production' : 'local';
-
-  // console.log(`🌍 Environment: ${environmentName}`);
-  
+  if(process.env.MONGODB_URI==="mongodb://127.0.0.2:27017/LMS"){
+  console.log('DB_DEV');
+}else{
+  console.log('DB_PRODUCTION');
+}
 });
 
 // Handle server shutdown gracefully
